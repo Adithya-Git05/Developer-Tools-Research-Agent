@@ -23,8 +23,9 @@ class FirecrawlService:
             )
             return result
         except Exception as e:
-            print(e)
-            return []
+            print("❌ Firecrawl search error:", e)
+            # ✅ Return dummy object with .data to avoid crashes in workflow
+            return type("Result", (), {"data": []})()
 
     def scrape_company_pages(self, url: str):
         try:
@@ -34,5 +35,5 @@ class FirecrawlService:
             )
             return result
         except Exception as e:
-            print(e)
+            print("❌ Firecrawl scrape error:", e)
             return None
