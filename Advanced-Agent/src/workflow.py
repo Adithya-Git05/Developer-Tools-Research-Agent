@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from langgraph.graph import StateGraph, END
-from langchain_groq import ChatGroq  # CHANGED
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from .models import ResearchState, CompanyInfo, CompanyAnalysis
 from .firecrawl import FirecrawlService
@@ -10,6 +10,7 @@ import os
 
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
+
 
 class Workflow:
     def __init__(self):
@@ -40,7 +41,8 @@ class Workflow:
             url = result.get("url", "")
             scraped = self.firecrawl.scrape_company_pages(url)
             if scraped:
-                all_content + scraped.markdown[:1500] + "\n\n"
+                all_content += scraped.markdown[:1500] + "\n\n"   # ✅ FIXED
+
         messages = [
             SystemMessage(content=self.prompts.TOOL_EXTRACTION_SYSTEM),
             HumanMessage(content=self.prompts.tool_extraction_user(state.query, all_content))
@@ -56,7 +58,7 @@ class Workflow:
             print(f"Extracted tools: {', '.join(tool_names[:5])}")
             return {"extracted_tools": tool_names}
         except Exception as e:
-            print(e)
+            print("❌ Error during tool extraction:", e)
             return {"extracted_tools": []}
 
     def _analyze_company_content(self, company_name: str, content: str) -> CompanyAnalysis:
@@ -71,7 +73,7 @@ class Workflow:
             analysis = structured_llm.invoke(messages)
             return analysis
         except Exception as e:
-            print(e)
+            print("❌ Error analyzing company:", e)
             return CompanyAnalysis(
                 pricing_model="Unknown",
                 is_open_source=None,
@@ -81,7 +83,6 @@ class Workflow:
                 language_support=[],
                 integration_capabilities=[],
             )
-
 
     def _research_step(self, state: ResearchState) -> Dict[str, Any]:
         extracted_tools = getattr(state, "extracted_tools", [])
@@ -102,13 +103,13 @@ class Workflow:
         for tool_name in tool_names:
             tool_search_results = self.firecrawl.search_companies(tool_name + " official site", num_results=1)
 
-            if tool_search_results:
+            if tool_search_results and tool_search_results.data:
                 result = tool_search_results.data[0]
                 url = result.get("url", "")
 
                 company = CompanyInfo(
                     name=tool_name,
-                    description=result.get("markdown", ""),
+                    description=result.get("markdown") or result.get("title", "Unknown"),  # ✅ FIXED
                     website=url,
                     tech_stack=[],
                     competitors=[]
@@ -132,11 +133,9 @@ class Workflow:
         return {"companies": companies}
 
     def _analyze_step(self, state: ResearchState) -> Dict[str, Any]:
-        print("Generating recommendations")
+        print("⚙️ Generating recommendations")
 
-        company_data = ", ".join([
-            company.json() for company in state.companies
-        ])
+        company_data = "\n".join([company.json() for company in state.companies])  # ✅ FIXED
 
         messages = [
             SystemMessage(content=self.prompts.RECOMMENDATIONS_SYSTEM),
