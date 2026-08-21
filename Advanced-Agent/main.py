@@ -9,42 +9,42 @@ def main():
     print("Developer Tools Research Agent")
 
     while True:
-        query = input("\n🔍 Developer Tools Query: ").strip()
+        query = input("\n Developer Tools Query: ").strip()
         if query.lower() in {"quit", "exit"}:
             break
 
         if query:
             result = workflow.run(query)
-            print(f"\n📊 Results for: {query}")
+            print(f"\n Results for: {query}")
             print("=" * 60)
 
             for i, company in enumerate(result.companies, 1):
-                print(f"\n{i}. 🏢 {company.name}")
-                print(f"   🌐 Website: {company.website}")
-                print(f"   💰 Pricing: {company.pricing_model}")
-                print(f"   📖 Open Source: {company.is_open_source}")
+                print(f"\n{i}.  {company.name}")
+                print(f"    Website: {company.website}")
+                print(f"    Pricing: {company.pricing_model}")
+                print(f"    Open Source: {company.is_open_source}")
 
                 if company.tech_stack:
                     print(f"   🛠️  Tech Stack: {', '.join(company.tech_stack[:5])}")
 
                 if company.language_support:
                     print(
-                        f"   💻 Language Support: {', '.join(company.language_support[:5])}"
+                        f"    Language Support: {', '.join(company.language_support[:5])}"
                     )
 
                 if company.api_available is not None:
                     api_status = (
-                        "✅ Available" if company.api_available else "❌ Not Available"
+                        " Available" if company.api_available else "❌ Not Available"
                     )
-                    print(f"   🔌 API: {api_status}")
+                    print(f"    API: {api_status}")
 
                 if company.integration_capabilities:
                     print(
-                        f"   🔗 Integrations: {', '.join(company.integration_capabilities[:4])}"
+                        f"    Integrations: {', '.join(company.integration_capabilities[:4])}"
                     )
 
                 if company.description and company.description != "Analysis failed":
-                    print(f"   📝 Description: {company.description}")
+                    print(f"  Description: {company.description}")
 
                 print()
 
